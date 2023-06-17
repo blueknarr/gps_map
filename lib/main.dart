@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:geolocator/geolocator.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -46,6 +48,17 @@ class GpsMapAppState extends State<GpsMapApp> {
       tilt: 59.440717697143555,
       zoom: 19.151926040649414);
 
+  /// initState 함수는 async 안됨
+  @override
+  void initState() {
+    super.initState();
+    init();
+  }
+
+  Future<void> init() async {
+    final position = await _determinePosition();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,5 +88,35 @@ class GpsMapAppState extends State<GpsMapApp> {
   Future<void> _goToTheLake() async {
     final GoogleMapController controller = await _controller.future;
     await controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
+  }
+
+  /// 현재 위치 정보에 접근해야 할 때 사용
+  Future<Position> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    /// 로케이션 서비스가 켜져 있는지, 기기의 위치정보 기능을 off하면 false
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    /// 현재 위치 정보를 얻기 위해서는 사용자 동의를 얻어야 한다. 위치 권한 확인
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    /// 거부를 2번이상 하면 더 이상 사용자에게 물어보지 않고 off
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    /// 위치 정보 권한을 받으면 현재 위치 정보를 얻는다.
+    return await Geolocator.getCurrentPosition();
   }
 }
