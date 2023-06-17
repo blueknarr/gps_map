@@ -49,13 +49,21 @@ class GpsMapAppState extends State<GpsMapApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      /// GoogleMap으로 구글맵을 띄울 수 있다.
       body: GoogleMap(
-        mapType: MapType.hybrid,
+        /// 맵 타입을 normal로 변경하면 기본 모드
+        mapType: MapType.normal,
+
+        /// 첫 시작점 구글 본사
         initialCameraPosition: _kGooglePlex,
+
+        /// 맵이 생성되자마자 맵을 컨트롤 할 수 있는 컨트롤러를 반환이 된다. 지도 조작 가능하다.
         onMapCreated: (GoogleMapController controller) {
           _controller.complete(controller);
         },
       ),
+
+      /// _goToTheLake가 찍힌다.
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _goToTheLake,
         label: const Text('To the lake!'),
