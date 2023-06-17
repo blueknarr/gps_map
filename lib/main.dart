@@ -60,6 +60,13 @@ class GpsMapAppState extends State<GpsMapApp> {
     );
 
     setState(() {});
+
+    /// LocationSettings : 위치 정보를 얼마나 정밀하게 조절 가능, 기본값으로
+    const locationSettings = LocationSettings();
+    Geolocator.getPositionStream(locationSettings: locationSettings)
+        .listen((Position position) {
+      _moveCamera(position);
+    });
   }
 
   @override
@@ -80,22 +87,17 @@ class GpsMapAppState extends State<GpsMapApp> {
                 _controller.complete(controller);
               },
             ),
-
-      /// _goToTheLake가 찍힌다.
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _goToTheLake,
-        label: const Text('To the lake!'),
-        icon: const Icon(Icons.directions_boat),
-      ),
     );
   }
 
-  Future<void> _goToTheLake() async {
+  Future<void> _moveCamera(Position position) async {
     final GoogleMapController controller = await _controller.future;
-    final currentLocation = await Geolocator.getCurrentPosition();
+
+    /// 지속적으로 현재 위치값을 받을 수 있다.
+    /// Stream 지속적으로 변경이 되는 값, 새로운 위치 정보를 받는다.
     final cameraPosition = CameraPosition(
-      target: LatLng(currentLocation.latitude, currentLocation.longitude),
-      zoom: 18,
+      target: LatLng(position.latitude, position.longitude),
+      zoom: 17,
     );
     await controller
         .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
