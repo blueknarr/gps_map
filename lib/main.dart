@@ -42,11 +42,7 @@ class GpsMapAppState extends State<GpsMapApp> {
     zoom: 14.4746,
   );
 
-  static const CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
+  CameraPosition? _initialCameraPosition;
 
   /// initState 함수는 async 안됨
   @override
@@ -57,24 +53,33 @@ class GpsMapAppState extends State<GpsMapApp> {
 
   Future<void> init() async {
     final position = await _determinePosition();
+
+    _initialCameraPosition = CameraPosition(
+      target: LatLng(position.latitude, position.longitude),
+      zoom: 17,
+    );
+
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       /// GoogleMap으로 구글맵을 띄울 수 있다.
-      body: GoogleMap(
-        /// 맵 타입을 normal로 변경하면 기본 모드
-        mapType: MapType.normal,
+      body: _initialCameraPosition == null
+          ? const Center(child: CircularProgressIndicator())
+          : GoogleMap(
+              /// 맵 타입을 normal로 변경하면 기본 모드
+              mapType: MapType.normal,
 
-        /// 첫 시작점 구글 본사
-        initialCameraPosition: _kGooglePlex,
+              /// 첫 시작점 구글 본사
+              initialCameraPosition: _initialCameraPosition!,
 
-        /// 맵이 생성되자마자 맵을 컨트롤 할 수 있는 컨트롤러를 반환이 된다. 지도 조작 가능하다.
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
-      ),
+              /// 맵이 생성되자마자 맵을 컨트롤 할 수 있는 컨트롤러를 반환이 된다. 지도 조작 가능하다.
+              onMapCreated: (GoogleMapController controller) {
+                _controller.complete(controller);
+              },
+            ),
 
       /// _goToTheLake가 찍힌다.
       floatingActionButton: FloatingActionButton.extended(
